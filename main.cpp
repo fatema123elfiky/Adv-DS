@@ -33,6 +33,31 @@ public:
     BTree() {
         root = nullptr;
     }
+
+    void dfs(Node<t, order>* node, int depth = 0) {
+        if (!node) return;
+
+        for (int i = 0; i < 2*depth; i++) {
+            cout << " ";
+        }
+        
+        for (int i = 0; i < node->numberOfKeys; i++) {
+            cout << node->keys[i];
+            cout << (i==(node->numberOfKeys-1)? "" : ",");
+        }
+        cout << "\n";
+
+        if (!node->isLeaf) {
+            for (int i = 0; i <= node->numberOfKeys; i++) {
+                if (node->children[i])
+                    dfs(node->children[i], depth+1);
+            }
+        }
+    }
+
+    void Print() {
+        dfs(root);
+    }
 };
 
 
