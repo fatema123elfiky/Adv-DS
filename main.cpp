@@ -1,5 +1,5 @@
 #include <iostream>
-#include <queue>
+
 
 using namespace std;
 
@@ -128,14 +128,19 @@ private:
     void split (Node<t,order> * temp){
             if(temp->numberOfKeys!=order)
                 return;
-            //split !
-            t pastKeys [order];
-            for (int idx = 0; idx < order ; ++idx) {
-                pastKeys[idx]= temp->keys[idx];
-            }
-            t mid = pastKeys[order/2];
 
-            //splited node
+            // before changes
+            t pastKeys [order];
+            for (int idx = 0; idx < order ; ++idx)
+                pastKeys[idx]= temp->keys[idx];
+
+            Node<t,order> * pastChildren [order+1] ;
+            for (int i = 0; i < order+1; ++i)
+                pastChildren[i]= temp->children[i];
+
+
+            //split !
+            t mid = pastKeys[order/2];
             Node<t,order> * left = new Node<t, order>(true);
             Node<t,order> * right = new Node<t,order>(true);
             for (int idx = 0 ,idx2=0; idx < order; ++idx) {
@@ -147,28 +152,60 @@ private:
                     idx2++;
             }
 
+
+
             //Two cases for split :
             // If there is no parent
             if(!temp->parent){
 
-                temp->isLeaf = false, temp->numberOfKeys = 1, temp->keys[0] = mid;
+                // changes
+                temp->isLeaf = false;
+                temp->numberOfKeys = 1;
+                temp->keys[0] = mid;
+
                 temp->children[0] = left, temp->children[1] = right;
-                left->parent=temp , right->parent=temp;
+                left->parent=temp ;
+                right->parent=temp;
+
+                // children handle
+                if(pastChildren[0]){
+                    int i;
+                    for ( i = 0; i < (order+1)/2 ; ++i)
+                        left->children[i]=pastChildren[i];
+
+                    for (int j = i; j < (order+1); ++j)
+                        right->children[j-i]=pastChildren[j];
+
+                }
 
             }else{//If there is a parent
 
                 Node<t,order> * par = temp->parent;
                 int index = shifting(par,mid);
 
-                Node<t,order> * tempVal1 =par->children[index] , *tempVal2 = par->children[index+1];
+
+
                 par->children[index++]=left;
-                par->children[index++]=right;
-                for (int i = index; i < par->numberOfKeys+1; i+=2) {
-                    Node<t,order> * val1 = par->children[i] , *val2=par->children[i+1];
-                    par->children[i]=tempVal1 , par->children[i+1]=tempVal2;
-                    tempVal1=val1,tempVal2=val2;
+
+
+                Node<t,order> * val1 =right ;
+                Node<t,order> * tempVal1 ;
+                for (int i = index; i < par->numberOfKeys+1; i++) {
+                    tempVal1 =par->children[index] ;
+                    par->children[i]=val1;
+                    val1=tempVal1;
                 }
                 left->parent=right->parent=par;
+                // children handle
+                if(pastChildren[0]){
+                    int i;
+                    for ( i = 0; i < (order+1)/2 ; ++i)
+                        left->children[i]=pastChildren[i];
+
+                    for (int j = i; j < (order+1); ++j)
+                        right->children[j-i]=pastChildren[j];
+
+                }
                 delete temp;
                 split(par);
 
@@ -180,7 +217,7 @@ public:
         root = nullptr;
     }
     void Print() {
-        dfs(root);
+        bfs(root);
     }
 
     void Insert(t val){
@@ -227,28 +264,34 @@ public:
 
         }
 
-    void test (){
 
-        queue<Node<t,order> *> bfs;
-        bfs.push(root);
-        while (!bfs.empty()){
-            auto x = bfs.front();
-            bfs.pop();
-            for (int i = 0; i < x->numberOfKeys; ++i)
-                cout<<x->keys[i]<<' ';
-
-            cout<<'\n';
-            for (int i = 0; i < x->numberOfKeys+1&& x->children[i]; ++i)
-                bfs.push(x->children[i]);
-
-
-        }
-    }
 
 };
 
+void test1(){
+    // Construct a BTree of order 3, which stores int data
+    BTree<int,3> t1;
 
-int main() {
+    t1.Insert(1);
+    t1.Insert(5);
+    t1.Insert(0);
+    t1.Insert(4);
+    t1.Insert(3);
+    t1.Insert(2);
+   // t1.Print(); // Should output the following on the screen:
+
+
+    /*
+    1,4
+      0
+      2,3
+      5
+    */
+
+}
+
+void test2(){
+
     // Construct a BTree of order 5, which stores char data
     BTree<char,5> t;
 
@@ -271,7 +314,7 @@ int main() {
     cout<<"passed 8\n";
     t.Insert('D');
     cout<<"passed 9\n";
-    /*t.Insert('S');
+    t.Insert('S');
     cout<<"passed 10\n";
     t.Insert('T');
     cout<<"passed 11\n";
@@ -290,10 +333,18 @@ int main() {
     t.Insert('P');
     cout<<"passed 18\n";
     t.Insert('Q');
-    cout<<"passed 19\n";*/
+    cout<<"passed 19\n";
 
 
-    t.test();
+    
+    //t.Print();
+
+}
+
+int main() {
+
+    test1();
+    test2();
 
     return 0;
 }
