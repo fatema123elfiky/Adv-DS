@@ -3,6 +3,9 @@
 
 using namespace std;
 
+
+
+
 template <typename t, int order>
 class Node {
 
@@ -16,7 +19,7 @@ public:
     Node<t,order>* parent;
     Node(bool leaf) {
         isLeaf = leaf;
-        numbrOfKeys = 0;
+        numberOfKeys = 0;
         for (int i = 0; i < order+1; i++)
             children[i] = nullptr;
         parent = nullptr;
@@ -29,13 +32,13 @@ template <typename t, int order>
 class BTree {
 private:
     Node<t, order>* root;
-     void dfs(Node<t, order>* node, int depth = 0) {
+    void dfs(Node<t, order>* node, int depth = 0) {
         if (!node) return;
 
         for (int i = 0; i < 2*depth; i++) {
             cout << " ";
         }
-        
+
         for (int i = 0; i < node->numberOfKeys; i++) {
             cout << node->keys[i];
             cout << (i==(node->numberOfKeys-1)? "" : ",");
@@ -66,7 +69,7 @@ private:
 
     }
 
-    void split (Node<t,order> * temp){
+    void split (Node<t,order> * temp,bool leaf = true){
             if(temp->numberOfKeys!=order)
                 return;
 
@@ -82,8 +85,8 @@ private:
 
             //split !
             t mid = pastKeys[order/2];
-            Node<t,order> * left = new Node<t, order>(true);
-            Node<t,order> * right = new Node<t,order>(true);
+            Node<t,order> * left = new Node<t, order>(leaf);
+            Node<t,order> * right = new Node<t,order>(leaf);
             for (int idx = 0 ,idx2=0; idx < order; ++idx) {
                 if (idx < order / 2)
                     left->keys[idx] = pastKeys[idx] , left->numberOfKeys++,idx2++;
@@ -148,7 +151,7 @@ private:
 
                 }
                 delete temp;
-                split(par);
+                split(par,false);
 
             }
     }
