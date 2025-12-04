@@ -135,75 +135,92 @@ private:
 
         }
     }
-    void split (Node<T,order> * temp,bool leaf = true){
-            if(temp->numberOfKeys!=order)
-                return;
+    void split (Node<T,order> * node, bool leaf = true)
+    {
+        // Check if we need split at current node
+        if(node->numberOfKeys!=order)
+            return;
 
-            // before changes
-            T pastKeys [order];
-            for (int idx = 0; idx < order ; ++idx)
-                pastKeys[idx]= temp->keys[idx];
+        // store keys before deleting the node
+        T pastKeys [order];
+        for (int idx = 0; idx < order ; ++idx)
+            pastKeys[idx]= node->keys[idx];
 
-            Node<T,order> * pastChildren [order+1] ;
-            for (int i = 0; i < order+1; ++i)
-                pastChildren[i]= temp->children[i];
+        // store children before deleting the node
+        Node<T,order> * pastChildren [order+1] ;
+        for (int i = 0; i < order+1; ++i)
+            pastChildren[i]= node->children[i];
 
+        // Get the middle key to split from it
+        T mid = pastKeys[order/2];
 
-            //split !
-            T mid = pastKeys[order/2];
-            Node<T,order> * left = new Node<T, order>(leaf);
-            Node<T,order> * right = new Node<T,order>(leaf);
-            for (int idx = 0 ,idx2=0; idx < order; ++idx) {
-                if (idx < order / 2) {
-                    left->keys[idx] = pastKeys[idx];
-                    left->numberOfKeys++, idx2++;
-                }else if (idx > order / 2) {
-                    right->keys[idx - idx2] = pastKeys[idx];
-                    right->numberOfKeys++;
-                }else
-                    idx2++;
+        // Create 2 new nodes
+        Node<T,order> * left = new Node<T, order>(leaf);
+        Node<T,order> * right = new Node<T,order>(leaf);
+
+        // Distribute the key to the left and right children
+        for (int idx = 0, idx2=0; idx < order; ++idx)
+        {
+            // Left part
+            if (idx < order / 2)
+            {
+                left->keys[idx] = pastKeys[idx];
+                left->numberOfKeys++, idx2++;
+            }
+            // Right part (the middle element is skipped)
+            else if (idx > order / 2)
+            {
+                right->keys[idx - idx2] = pastKeys[idx];
+                right->numberOfKeys++;
+            }
+            else
+                idx2++;
+        }
+
+        // Two cases for split:
+        // Case 1: If there is no parent
+        if(!node->parent)
+        {
+            // Make the old node the new root
+            node->isLeaf = false;
+            node->numberOfKeys = 1;
+            node->keys[0] = mid;
+
+            // Attach the left and right children to it
+            node->children[0] = left;
+            node->children[1] = right;
+            left->parent = node;
+            right->parent = node;
+
+            // Redistribute children if internal node
+            children_handling(pastChildren,left,right);
+        }
+        else //If there is a parent
+        {
+            // Insert middle key into the parent
+            Node<T,order> * par = node->parent;
+            // get the index where the middle element is inserted
+            int index = shifting(par,mid);
+            // put left child at index
+            par->children[index++]=left;
+            // put right child after it
+            shifting_child(par,right,index);
+            // set the parent of left and right children
+            left->parent=right->parent=par;
+            // Reassign children to left & right
+            children_handling(pastChildren,left,right);
+
+            // Clear old children pointers
+            for(int i = 0; i < order + 1; i++) {
+                node->children[i] = nullptr;
             }
 
+            // delete the old node
+            delete node;
 
-
-            //Two cases for split :
-            // If there is no parent
-            if(!temp->parent){
-
-                // changes
-                temp->isLeaf = false;
-                temp->numberOfKeys = 1;
-                temp->keys[0] = mid;
-
-                temp->children[0] = left, temp->children[1] = right;
-                left->parent=temp ;
-                right->parent=temp;
-
-                children_handling(pastChildren,left,right);
-
-
-            }else{//If there is a parent
-
-                Node<T,order> * par = temp->parent;
-                int index = shifting(par,mid);
-
-
-
-                par->children[index++]=left;
-                shifting_child(par,right,index);
-
-
-                left->parent=right->parent=par;
-                children_handling(pastChildren,left,right);
-
-                for(int i = 0; i < order + 1; i++) {
-                    temp->children[i] = nullptr;
-                }
-
-                delete temp;
-                split(par,false);
-
-            }
+            // Recursively split parent if it is full
+            split(par,false);
+        }
     }
 
 public:
