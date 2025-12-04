@@ -110,7 +110,8 @@ private:
     void shifting_child (Node<T,order> * par , Node<T,order> * right , int index){
         Node<T,order> * val1 =right ;
         Node<T,order> * tempVal1 ;
-        for (int i = index; i < par->numberOfKeys+1; i++) {
+        for (int i = index; i < par->numberOfKeys+1; i++)
+        {
             tempVal1 =par->children[index] ;
             par->children[i]=val1;
             val1=tempVal1;
@@ -119,7 +120,8 @@ private:
 
     void children_handling (Node<T,order> ** pastChildren, Node<T,order> *left ,Node<T,order> *right){
         // children handle
-        if(pastChildren[0]){
+        if(pastChildren[0])
+        {
             int i;
             for ( i = 0; i < (order+1)/2 ; ++i)
                 left->children[i]=pastChildren[i];
@@ -196,66 +198,85 @@ private:
     }
 
 public:
-    ~BTree(){
-        delete root;
-    }
-    BTree() {
+    // Constructor for the BTree
+    BTree()
+    {
+        // initialize the root to nullptr
         root = nullptr;
     }
-    void Print() {
+
+    // Function to print nodes in the tree
+    void Print()
+    {
+        // print using depth-first-search
         dfs(root);
     }
 
-    Node<T,order> * Search (Node<T,order> * node , T val ){
+    // Function to find which leaf node a value should be inserted in
+    Node<T,order>* Search (Node<T,order>* node, T val)
+    {
+        // node to using in traversing
         Node <T,order> * temp = node;
 
-        while (temp && !temp->isLeaf){
-            //iterating inside the fatty node
-            bool done = false;
-            for (int idx = 0 ; idx < temp->numberOfKeys; ++idx) {
-                if(temp->keys[idx] > val){
+        // while temp is an internal node continue until you reach a leaf
+        while (temp && !temp->isLeaf)
+        {
+            // boolean to check if val is smaller than any key
+            bool found = false;
+            // iterate through keys in the current node
+            for (int idx = 0 ; idx < temp->numberOfKeys; ++idx)
+            {
+                // if current key is greater than val
+                if(temp->keys[idx] > val)
+                {
+                    // val should be a left child for this key
                     temp= temp->children[idx];
-                    done=true;
+                    found=true;
                     break;
                 }
             }
-            if(!done)
+            // go to the right most child of this node
+            if(!found)
                 temp=temp->children[temp->numberOfKeys];
-
         }
+        // return pointer to the correct leaf
         return temp;
     }
 
-    void Insert(T val){
-        //First insertion
+    // Function to insert a new value to the BTree
+    void Insert(T val)
+    {
+        // If the tree is empty
         if(!root) {
+            // Create root node
             root = new Node<T, order>(true);
             root->keys[0] = val ;
             root->numberOfKeys++;
             return;
         }
 
-        //Search first for the right position
-        Node <T,order> * temp = Search(root , val);
+        // Search for the right leaf to insert in it
+        Node <T,order> * leafPos = Search(root, val);
 
-        //Insert anyway
-        shifting(temp,val);
+        // Insert val in the correct leaf
+        shifting(leafPos,val);
 
-        // If we reached max
-        if(temp->numberOfKeys == order)
-            split(temp);
+        // If the leaf to insert in is full
+        if(leafPos->numberOfKeys == order)
+            // split this leaf
+            split(leafPos);
+    }
 
-
-        }
-
-
-
+    // Destructor for the B-tree
+    ~BTree()
+    {
+        // Delete the root pointer
+        delete root;
+    }
 };
 
-
-
-int main() {
-
+int main()
+{
     // Construct a BTree of order 3, which stores int data
     BTree<int,3> t1;
 
@@ -265,6 +286,7 @@ int main() {
     t1.Insert(4);
     t1.Insert(3);
     t1.Insert(2);
+
     t1.Print(); // Should output the following on the screen:
 
     /*
@@ -298,11 +320,7 @@ int main() {
     t.Insert('P');
     t.Insert('Q');
 
-
-
-
     t.Print();
-
 
     return 0;
 }
