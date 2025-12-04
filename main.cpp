@@ -79,11 +79,13 @@ private:
             //splited node
             Node<t,order> * left = new Node<t, order>(true);
             Node<t,order> * right = new Node<t,order>(true);
-            for (int idx = 0; idx < order; ++idx) {
+            for (int idx = 0 ,idx2=0; idx < order; ++idx) {
                 if (idx < order / 2)
-                    left->keys[idx] = pastKeys[idx] , left->numberOfKeys++;
+                    left->keys[idx] = pastKeys[idx] , left->numberOfKeys++,idx2++;
                 else if (idx > order / 2)
-                    right->keys[idx] = pastKeys[idx], right->numberOfKeys++;
+                    right->keys[idx-idx2] = pastKeys[idx], right->numberOfKeys++;
+                else
+                    idx2++;
             }
 
             //Two cases for split :
@@ -125,14 +127,14 @@ public:
     void Insert(t val){
         //First insertion
         if(!root) {
-            root = new Node<t, order>(true), root->keys[0] = val;
+            root = new Node<t, order>(true), root->keys[0] = val , root->numberOfKeys++;
             return;
         }
 
         //Search first for the right position
         Node <t,order> * temp = root;
 
-        while (!temp && !temp->isLeaf){
+        while (temp && !temp->isLeaf){
 
             //iterating inside the fatty node
             bool done = false;
@@ -177,7 +179,7 @@ public:
                 cout<<x->keys[i]<<' ';
 
             cout<<'\n';
-            for (int i = 0; i < x->numberOfKeys+1&& x->children[i]->isLeaf; ++i)
+            for (int i = 0; i < x->numberOfKeys+1&& x->children[i]; ++i)
                 bfs.push(x->children[i]);
 
 
@@ -188,63 +190,51 @@ public:
 
 
 int main() {
-    // Construct a BTree of order 3, which stores int data
-    BTree<int,3> t1;
-
-    t1.Insert(1);
-    t1.Insert(5);
-    t1.Insert(0);
-    t1.Insert(4);
-    t1.Insert(3);
-    t1.Insert(2);
-
-    //t1.test();
-    //t1.Print(); // Should output the following on the screen:
-
-    /*
-    1,4
-      0
-      2,3
-      5
-    */
-
     // Construct a BTree of order 5, which stores char data
     BTree<char,5> t;
 
     // Look at the example in our lecture:
     t.Insert('G');
+    cout<<"passed 1\n";
     t.Insert('I');
+    cout<<"passed 2\n";
     t.Insert('B');
+    cout<<"passed 3\n";
     t.Insert('J');
+    cout<<"passed 4\n";
     t.Insert('C');
+    cout<<"passed 5\n";
     t.Insert('A');
+    cout<<"passed 6\n";
     t.Insert('K');
+    cout<<"passed 7\n";
     t.Insert('E');
+    cout<<"passed 8\n";
     t.Insert('D');
-    t.Insert('S');
+    cout<<"passed 9\n";
+    /*t.Insert('S');
+    cout<<"passed 10\n";
     t.Insert('T');
+    cout<<"passed 11\n";
     t.Insert('R');
+    cout<<"passed 12\n";
     t.Insert('L');
+    cout<<"passed 13\n";
     t.Insert('F');
+    cout<<"passed 14\n";
     t.Insert('H');
+    cout<<"passed 15\n";
     t.Insert('M');
+    cout<<"passed 16\n";
     t.Insert('N');
+    cout<<"passed 17\n";
     t.Insert('P');
+    cout<<"passed 18\n";
     t.Insert('Q');
+    cout<<"passed 19\n";*/
 
-    //t.test();
-    //t.Print(); // Should output the following on the screen:
 
-    /*
-    K
-      C,G
-        A,B
-        D,E,F
-        H,I,J
-      N,R
-        L,M
-        P,Q
-        S,T
-    */
+    t.test();
+
     return 0;
 }
