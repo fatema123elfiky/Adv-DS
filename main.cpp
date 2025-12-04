@@ -1,5 +1,5 @@
 #include <iostream>
-
+#include <queue>
 
 using namespace std;
 
@@ -58,7 +58,6 @@ public:
         delete[] arr;
     }
 };
-
 
 
 template <typename t, int order>
@@ -264,7 +263,23 @@ public:
 
         }
 
+    void test (){
 
+        queue<Node<t,order> *> bfs;
+        bfs.push(root);
+        while (!bfs.empty()){
+            auto x = bfs.front();
+            bfs.pop();
+            for (int i = 0; i < x->numberOfKeys; ++i)
+                cout<<x->keys[i]<<' ';
+
+            cout<<'\n';
+            for (int i = 0; i < x->numberOfKeys+1&& x->children[i]; ++i)
+                bfs.push(x->children[i]);
+
+
+        }
+    }
 
 };
 
@@ -278,9 +293,9 @@ void test1(){
     t1.Insert(4);
     t1.Insert(3);
     t1.Insert(2);
-   // t1.Print(); // Should output the following on the screen:
+    t1.Print(); // Should output the following on the screen:
 
-
+   //t1.test();
     /*
     1,4
       0
@@ -336,8 +351,8 @@ void test2(){
     cout<<"passed 19\n";
 
 
-    
-    //t.Print();
+    //t.test();
+    t.Print();
 
 }
 
