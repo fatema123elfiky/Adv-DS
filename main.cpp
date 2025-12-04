@@ -3,63 +3,6 @@
 
 using namespace std;
 
-template<typename T>
-class Queue {
-private:
-    T* arr;
-    int size, capacity;
-    int front, rear;
-
-public:
-    Queue() {
-        capacity = 200;
-        arr = new T[capacity];
-        size = 0;
-        front = 0;
-        rear = 0;
-    }
-
-    void enqueue(const T& val) {
-        if (size == capacity) {
-            int oldCap = capacity;
-            capacity *= 2;
-            T* temp = new T[capacity];
-
-            for (int i = 0; i < size; i++)
-                temp[i] = arr[(front + i) % oldCap];
-
-            delete[] arr;
-            arr = temp;
-
-            front = 0;
-            rear = size;
-        }
-
-        arr[rear] = val;
-        rear = (rear + 1) % capacity;
-        size++;
-    }
-
-    T dequeue() {
-        if (size == 0)
-            throw std::runtime_error("Queue is empty");
-
-        T val = arr[front];
-        front = (front + 1) % capacity;
-        size--;
-        return val;
-    }
-
-    bool isEmpty() const {
-        return size == 0;
-    }
-
-    ~Queue() {
-        delete[] arr;
-    }
-};
-
-
 template <typename t, int order>
 class Node {
 
@@ -73,7 +16,7 @@ public:
     Node<t,order>* parent;
     Node(bool leaf) {
         isLeaf = leaf;
-        numberOfKeys = 0;
+        numbrOfKeys = 0;
         for (int i = 0; i < order+1; i++)
             children[i] = nullptr;
         parent = nullptr;
@@ -86,24 +29,23 @@ template <typename t, int order>
 class BTree {
 private:
     Node<t, order>* root;
-    void bfs(Node<t, order>* node) {
-        Queue<Node<t, order>*> q;
-        q.enqueue(node);
+     void dfs(Node<t, order>* node, int depth = 0) {
+        if (!node) return;
 
-        while (!q.isEmpty()) {
-            Node<t, order>* front = q.dequeue();
+        for (int i = 0; i < 2*depth; i++) {
+            cout << " ";
+        }
+        
+        for (int i = 0; i < node->numberOfKeys; i++) {
+            cout << node->keys[i];
+            cout << (i==(node->numberOfKeys-1)? "" : ",");
+        }
+        cout << "\n";
 
-            for (int i = 0; i < front->numberOfKeys; i++) {
-                cout << front->keys[i];
-                if (i == front->numberOfKeys - 1) cout << "\n";
-                else cout << " ";
-            }
-
-            if (!front->isLeaf) {
-                for (int i = 0; i <= front->numberOfKeys; i++) {
-                    if (front->children[i] != nullptr)
-                        q.enqueue(front->children[i]);
-                }
+        if (!node->isLeaf) {
+            for (int i = 0; i <= node->numberOfKeys; i++) {
+                if (node->children[i])
+                    dfs(node->children[i], depth+1);
             }
         }
     }
@@ -216,7 +158,7 @@ public:
         root = nullptr;
     }
     void Print() {
-        bfs(root);
+        dfs(root);
     }
 
     void Insert(t val){
