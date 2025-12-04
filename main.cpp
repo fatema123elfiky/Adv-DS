@@ -85,7 +85,7 @@ private:
         node->numberOfKeys++;
 
         // search for the suitable space to insert val in it
-        int idx;
+        int idx = 0;
         while (idx < node->numberOfKeys-1)
         {
             // break if current key greater than val
@@ -112,7 +112,7 @@ private:
         Node<T,order> * tempVal1 ;
         for (int i = index; i < par->numberOfKeys+1; i++)
         {
-            tempVal1 =par->children[index] ;
+            tempVal1 = par->children[i] ;
             par->children[i]=val1;
             val1=tempVal1;
         }
@@ -123,11 +123,15 @@ private:
         if(pastChildren[0])
         {
             int i;
-            for ( i = 0; i < (order+1)/2 ; ++i)
+            for ( i = 0; i < (order+1)/2 ; ++i) {
                 left->children[i]=pastChildren[i];
+                if(left->children[i]) left->children[i]->parent = left;
+            }
 
-            for (int j = i; j < (order+1); ++j)
+            for (int j = i; j < (order+1); ++j) {
                 right->children[j-i]=pastChildren[j];
+                if(right->children[j-i]) right->children[j-i]->parent = right;
+            }
 
         }
     }
@@ -191,6 +195,11 @@ private:
 
                 left->parent=right->parent=par;
                 children_handling(pastChildren,left,right);
+
+                for(int i = 0; i < order + 1; i++) {
+                    temp->children[i] = nullptr;
+                }
+
                 delete temp;
                 split(par,false);
 
@@ -321,6 +330,46 @@ int main()
     t.Insert('Q');
 
     t.Print();
+
+    BTree<int,4> f;
+    f.Insert(5);
+    f.Insert(3);
+    f.Insert(21);
+    f.Insert(9);
+    f.Insert(1);
+    f.Insert(13);
+    f.Insert(2);
+    f.Insert(7);
+    f.Insert(10);
+    f.Insert(12);
+    f.Insert(4);
+    f.Insert(8);
+
+
+    f.Print();
+
+    BTree<int,5>tt;
+    tt.Insert(1);
+    tt.Insert(2);
+    tt.Insert(3);
+    tt.Insert(4);
+    tt.Insert(5);
+    tt.Insert(6);
+    tt.Insert(7);
+    tt.Insert(8);
+    tt.Insert(9);
+    tt.Insert(10);
+    tt.Insert(11);
+    tt.Insert(12);
+    tt.Insert(13);
+    tt.Insert(14);
+    tt.Insert(15);
+    tt.Insert(16);
+    tt.Insert(17);
+    tt.Insert(18);
+    tt.Insert(19);
+    tt.Insert(20);
+    tt.Print();
 
     return 0;
 }
