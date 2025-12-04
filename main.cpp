@@ -11,13 +11,15 @@ class Node {
 
 public:
     // minor change for intermediate step
-    t keys[order];
-    Node<t, order>* children[order+1];
+    t * keys;
+    Node<t, order>** children ;
 
     int numberOfKeys;
     bool isLeaf;
     Node<t,order>* parent;
     Node(bool leaf) {
+        keys = new t[order];
+        children = new Node<t, order> * [order+1];
         isLeaf = leaf;
         numberOfKeys = 0;
         for (int i = 0; i < order+1; i++)
@@ -25,12 +27,14 @@ public:
         parent = nullptr;
     }
     ~Node(){
-        for (int i = 0; i < numberOfKeys + 1; i++) {
-            if (children[i] != nullptr) {
-                delete children[i];
-            }
-        }
-        
+        for (int i = 0; i < numberOfKeys + 1; i++)
+            delete children[i];
+
+
+        delete[] keys;
+        delete[] children;
+
+
     }
 
 };
@@ -61,10 +65,12 @@ private:
     }
     int shifting (Node <t,order> * node , t val){
         node->numberOfKeys++;
+
         int idx;
         for (idx = 0; idx < node->numberOfKeys-1 ; ++idx)
             if(node->keys[idx] >val)
                 break;
+
         t tempVal ;
         for (int i = idx; i < node->numberOfKeys-1 ; ++i) {
             tempVal = node -> keys[i];
@@ -72,10 +78,33 @@ private:
             val = tempVal;
         }
         node->keys[node->numberOfKeys-1]=val;
+
         return idx;
 
     }
 
+    void shifting_child (Node<t,order> * par , Node<t,order> * right , int index){
+        Node<t,order> * val1 =right ;
+        Node<t,order> * tempVal1 ;
+        for (int i = index; i < par->numberOfKeys+1; i++) {
+            tempVal1 =par->children[index] ;
+            par->children[i]=val1;
+            val1=tempVal1;
+        }
+    }
+
+    void children_handling (Node<t,order> ** pastChildren, Node<t,order> *left ,Node<t,order> *right){
+        // children handle
+        if(pastChildren[0]){
+            int i;
+            for ( i = 0; i < (order+1)/2 ; ++i)
+                left->children[i]=pastChildren[i];
+
+            for (int j = i; j < (order+1); ++j)
+                right->children[j-i]=pastChildren[j];
+
+        }
+    }
     void split (Node<t,order> * temp,bool leaf = true){
             if(temp->numberOfKeys!=order)
                 return;
@@ -120,16 +149,8 @@ private:
                 left->parent=temp ;
                 right->parent=temp;
 
-                // children handle
-                if(pastChildren[0]){
-                    int i;
-                    for ( i = 0; i < (order+1)/2 ; ++i)
-                        left->children[i]=pastChildren[i];
+                children_handling(pastChildren,left,right);
 
-                    for (int j = i; j < (order+1); ++j)
-                        right->children[j-i]=pastChildren[j];
-
-                }
 
             }else{//If there is a parent
 
@@ -139,26 +160,11 @@ private:
 
 
                 par->children[index++]=left;
+                shifting_child(par,right,index);
 
 
-                Node<t,order> * val1 =right ;
-                Node<t,order> * tempVal1 ;
-                for (int i = index; i < par->numberOfKeys+1; i++) {
-                    tempVal1 =par->children[index] ;
-                    par->children[i]=val1;
-                    val1=tempVal1;
-                }
                 left->parent=right->parent=par;
-                // children handle
-                if(pastChildren[0]){
-                    int i;
-                    for ( i = 0; i < (order+1)/2 ; ++i)
-                        left->children[i]=pastChildren[i];
-
-                    for (int j = i; j < (order+1); ++j)
-                        right->children[j-i]=pastChildren[j];
-
-                }
+                children_handling(pastChildren,left,right);
                 delete temp;
                 split(par,false);
 
@@ -176,20 +182,10 @@ public:
         dfs(root);
     }
 
-    void Insert(t val){
-        //First insertion
-        if(!root) {
-            root = new Node<t, order>(true);
-            root->keys[0] = val ;
-            root->numberOfKeys++;
-            return;
-        }
-
-        //Search first for the right position
-        Node <t,order> * temp = root;
+    Node<t,order> * Search (Node<t,order> * node , t val ){
+        Node <t,order> * temp = node;
 
         while (temp && !temp->isLeaf){
-
             //iterating inside the fatty node
             bool done = false;
             for (int idx = 0 ; idx < temp->numberOfKeys; ++idx) {
@@ -200,24 +196,30 @@ public:
                 }
             }
             if(!done)
-               temp=temp->children[temp->numberOfKeys];
-
+                temp=temp->children[temp->numberOfKeys];
 
         }
+        return temp;
+    }
 
+    void Insert(t val){
+        //First insertion
+        if(!root) {
+            root = new Node<t, order>(true);
+            root->keys[0] = val ;
+            root->numberOfKeys++;
+            return;
+        }
+
+        //Search first for the right position
+        Node <t,order> * temp = Search(root , val);
 
         //Insert anyway
         shifting(temp,val);
 
         // If we reached max
-        // so, no leaf , numberOfKeys will change
-        // parent will change ,keys
-        if(temp->numberOfKeys == order) {
+        if(temp->numberOfKeys == order)
             split(temp);
-            //cout<<"Split\n";
-        }
-        //cout<<"insertion done\n";
-
 
 
         }
