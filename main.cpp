@@ -24,7 +24,14 @@ public:
             children[i] = nullptr;
         parent = nullptr;
     }
-
+    ~Node(){
+        for (int i = 0; i < numberOfKeys + 1; i++) {
+            if (children[i] != nullptr) {
+                delete children[i];
+            }
+        }
+        
+    }
 
 };
 
@@ -159,6 +166,9 @@ private:
     }
 
 public:
+    ~BTree(){
+        delete root;
+    }
     BTree() {
         root = nullptr;
     }
