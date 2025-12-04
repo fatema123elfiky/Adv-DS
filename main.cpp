@@ -1,293 +1,356 @@
 #include <iostream>
 
-
 using namespace std;
 
-
-
-
-template <typename t, int order>
-class Node {
-
+template <typename T, int order>
+class Node
+{
 public:
-    // minor change for intermediate step
-    t * keys;
-    Node<t, order>** children ;
-
+    // array of keys
+    T*  keys;
+    // array of pointers to the children nodes
+    Node<T, order>** children;
+    // pointer to the parent
+    Node<T,order>* parent;
+    // current number of keys in the node
     int numberOfKeys;
+    // if the node is leaf or internal node
     bool isLeaf;
-    Node<t,order>* parent;
-    Node(bool leaf) {
-        keys = new t[order];
-        children = new Node<t, order> * [order+1];
+
+    // Constructor of Node
+    Node(bool leaf)
+    {
+        keys = new T[order];
+        children = new Node<T, order> * [order+1];
         isLeaf = leaf;
         numberOfKeys = 0;
+        // initialize all children to nullptr
         for (int i = 0; i < order+1; i++)
             children[i] = nullptr;
         parent = nullptr;
     }
-    ~Node(){
+
+    // Destructor of Node to delete pointers
+    ~Node()
+    {
+        // delete each pointer in the children array
         for (int i = 0; i < numberOfKeys + 1; i++)
             delete children[i];
-
-
         delete[] keys;
         delete[] children;
     }
-
 };
 
-template <typename t, int order>
-class BTree {
+template <typename T, int order>
+class BTree
+{
 private:
-    Node<t, order>* root;
-    void dfs(Node<t, order>* node, int depth = 0) {
+    // pointer to the root of the tree
+    Node<T, order>* root;
+
+    // Function to print the B-tree using depth-first-search
+    void dfs(Node<T, order>* node, int depth = 0)
+    {
+        // base case: if current node is null stop recursion
         if (!node) return;
 
-        for (int i = 0; i < 2*depth; i++) {
+        // print spaces according to the level of the node
+        for (int i = 0; i < 2*depth; i++)
             cout << " ";
-        }
 
-        for (int i = 0; i < node->numberOfKeys; i++) {
+        // print all keys in the current node
+        for (int i = 0; i < node->numberOfKeys; i++)
+        {
             cout << node->keys[i];
-            cout << (i==(node->numberOfKeys-1)? "" : ",");
+            // print commas between internal keys
+            cout << (i==(node->numberOfKeys-1) ? "" : ",");
         }
         cout << "\n";
 
-        if (!node->isLeaf) {
-            for (int i = 0; i <= node->numberOfKeys; i++) {
+        // if the current node has more children: traverse its children
+        if (!node->isLeaf)
+        {
+            for (int i = 0; i <= node->numberOfKeys; i++)
+            {
                 if (node->children[i])
                     dfs(node->children[i], depth+1);
             }
         }
     }
-    int shifting (Node <t,order> * node , t val){
+
+    // Function to insert new key to the array of keys and maintain sorted order
+    int shifting (Node <T,order> * node , T val)
+    {
+        // increase number of keys to put the new key
         node->numberOfKeys++;
 
-        int idx;
-        for (idx = 0; idx < node->numberOfKeys-1 ; ++idx)
+        // search for the suitable space to insert val in it
+        int idx = 0;
+        while (idx < node->numberOfKeys-1)
+        {
+            // break if current key greater than val
             if(node->keys[idx] >val)
                 break;
-
-        t tempVal ;
-        for (int i = idx; i < node->numberOfKeys-1 ; ++i) {
+            idx++;
+        }
+        // variable to save the key that will be shifted
+        T tempVal;
+        for (int i = idx; i < node->numberOfKeys-1; ++i)
+        {
+            // shift the current key and put the val in cur position
             tempVal = node -> keys[i];
             node->keys[i]=val;
             val = tempVal;
         }
+        // put the greatest value in the last position
         node->keys[node->numberOfKeys-1]=val;
-
         return idx;
-
     }
 
-    void shifting_child (Node<t,order> * par , Node<t,order> * right , int index){
-        Node<t,order> * val1 = right;
-        Node<t,order> * tempVal1;
-        // numberOfKeys was already incremented in shifting(), so we go up to numberOfKeys + 1
-        for (int i = index; i < par->numberOfKeys + 1; i++) {
-            tempVal1 = par->children[i]; // CORRECTED: Use 'i', not 'index'
-            par->children[i] = val1;
-            val1 = tempVal1;
+    void shifting_child (Node<T,order> * par , Node<T,order> * right , int index){
+        Node<T,order> * val1 =right ;
+        Node<T,order> * tempVal1 ;
+        for (int i = index; i < par->numberOfKeys+1; i++)
+        {
+            tempVal1 = par->children[i] ;
+            par->children[i]=val1;
+            val1=tempVal1;
         }
     }
 
-    void split (Node<t,order> * temp, bool leaf = true){
-        if(temp->numberOfKeys != order)
+    void children_handling (Node<T,order> ** pastChildren, Node<T,order> *left ,Node<T,order> *right){
+        // children handle
+        if(pastChildren[0])
+        {
+            int i;
+            for ( i = 0; i < (order+1)/2 ; ++i) {
+                left->children[i]=pastChildren[i];
+                if(left->children[i]) left->children[i]->parent = left;
+            }
+                if((order+1)%2){
+                    left->children[i]=pastChildren[i];
+                    if(left->children[i]) left->children[i]->parent = left;
+                    i++;
+                }
+            for (int j = i; j < (order+1); ++j) {
+                right->children[j-i]=pastChildren[j];
+                if(right->children[j-i]) right->children[j-i]->parent = right;
+            }
+
+        }
+    }
+    void split (Node<T,order> * temp,bool leaf = true){
+        if(temp->numberOfKeys!=order)
             return;
 
         // before changes
-        t pastKeys [order];
+        T pastKeys [order];
         for (int idx = 0; idx < order ; ++idx)
-            pastKeys[idx] = temp->keys[idx];
+            pastKeys[idx]= temp->keys[idx];
 
-        Node<t,order> * pastChildren [order+1];
+        Node<T,order> * pastChildren [order+1] ;
         for (int i = 0; i < order+1; ++i)
-            pastChildren[i] = temp->children[i];
+            pastChildren[i]= temp->children[i];
 
-        // split
-        t mid = pastKeys[order/2];
-        Node<t,order> * left = new Node<t, order>(leaf);
-        Node<t,order> * right = new Node<t,order>(leaf);
 
-        // Distribute keys
-        for (int idx = 0, idx2 = 0; idx < order; ++idx) {
+        //split !
+        T mid = pastKeys[order/2];
+        Node<T,order> * left = new Node<T, order>(leaf);
+        Node<T,order> * right = new Node<T,order>(leaf);
+        for (int idx = 0 ,idx2=0; idx < order; ++idx) {
             if (idx < order / 2) {
                 left->keys[idx] = pastKeys[idx];
                 left->numberOfKeys++, idx2++;
-            } else if (idx > order / 2) {
+            }else if (idx > order / 2) {
                 right->keys[idx - idx2] = pastKeys[idx];
                 right->numberOfKeys++;
-            } else {
+            }else
                 idx2++;
-            }
         }
 
-        // Case 1: No Parent (Root split)
+
+
+        //Two cases for split :
+        // If there is no parent
         if(!temp->parent){
+
+            // changes
             temp->isLeaf = false;
             temp->numberOfKeys = 1;
             temp->keys[0] = mid;
 
-            temp->children[0] = left;
-            temp->children[1] = right;
-            left->parent = temp;
-            right->parent = temp;
+            temp->children[0] = left, temp->children[1] = right;
+            left->parent=temp ;
+            right->parent=temp;
 
-            children_handling(pastChildren, left, right);
-        }
-        // Case 2: Has Parent
-        else {
-            Node<t,order> * par = temp->parent;
-            int index = shifting(par, mid);
+            children_handling(pastChildren,left,right);
 
-            par->children[index++] = left;
-            shifting_child(par, right, index);
 
-            left->parent = right->parent = par;
-            children_handling(pastChildren, left, right);
+        }else{//If there is a parent
 
-            // CORRECTED: Nullify pointers to prevent recursive deletion
+            Node<T,order> * par = temp->parent;
+            int index = shifting(par,mid);
+
+
+
+            par->children[index++]=left;
+            shifting_child(par,right,index);
+
+
+            left->parent=right->parent=par;
+            children_handling(pastChildren,left,right);
+
             for(int i = 0; i < order + 1; i++) {
                 temp->children[i] = nullptr;
             }
 
             delete temp;
-            split(par, false);
-        }
-    }
+            split(par,false);
 
-    void children_handling (Node<t,order> ** pastChildren, Node<t,order> *left ,Node<t,order> *right){
-        if(pastChildren[0]){
-            int i;
-            // Assign to Left Node
-            for ( i = 0; i < (order+1)/2 ; ++i) {
-                left->children[i] = pastChildren[i];
-                // CRITICAL FIX: Update the child's parent pointer
-                if(left->children[i]) left->children[i]->parent = left;
-            }
-
-            // Assign to Right Node
-            for (int j = i; j < (order+1); ++j) {
-                right->children[j-i] = pastChildren[j];
-                // CRITICAL FIX: Update the child's parent pointer
-                if(right->children[j-i]) right->children[j-i]->parent = right;
-            }
         }
     }
 
 public:
-    ~BTree(){
-        delete root;
-    }
-    BTree() {
+    // Constructor for the BTree
+    BTree()
+    {
+        // initialize the root to nullptr
         root = nullptr;
     }
-    void Print() {
+
+    // Function to print nodes in the tree
+    void Print()
+    {
+        // print using depth-first-search
         dfs(root);
     }
 
-    Node<t,order> * Search (Node<t,order> * node , t val ){
-        Node <t,order> * temp = node;
+    // Function to find which leaf node a value should be inserted in
+    Node<T,order>* Search (Node<T,order>* node, T val)
+    {
+        // node to using in traversing
+        Node <T,order> * temp = node;
 
-        while (temp && !temp->isLeaf){
-            //iterating inside the fatty node
-            bool done = false;
-            for (int idx = 0 ; idx < temp->numberOfKeys; ++idx) {
-                if(temp->keys[idx] > val){
+        // while temp is an internal node continue until you reach a leaf
+        while (temp && !temp->isLeaf)
+        {
+            // boolean to check if val is smaller than any key
+            bool found = false;
+            // iterate through keys in the current node
+            for (int idx = 0 ; idx < temp->numberOfKeys; ++idx)
+            {
+                // if current key is greater than val
+                if(temp->keys[idx] > val)
+                {
+                    // val should be a left child for this key
                     temp= temp->children[idx];
-                    done=true;
+                    found=true;
                     break;
                 }
             }
-            if(!done)
+            // go to the right most child of this node
+            if(!found)
                 temp=temp->children[temp->numberOfKeys];
-
         }
+        // return pointer to the correct leaf
         return temp;
     }
 
-    void Insert(t val){
-        //First insertion
+    // Function to insert a new value to the BTree
+    void Insert(T val)
+    {
+        // If the tree is empty
         if(!root) {
-            root = new Node<t, order>(true);
-            root->keys[0] = val;
+            // Create root node
+            root = new Node<T, order>(true);
+            root->keys[0] = val ;
             root->numberOfKeys++;
             return;
         }
 
-        //Search first for the right position
-        Node <t,order> * temp = Search(root , val);
+        // Search for the right leaf to insert in it
+        Node <T,order> * leafPos = Search(root, val);
 
-        //Insert anyway
-        shifting(temp,val);
+        // Insert val in the correct leaf
+        shifting(leafPos,val);
 
-        // If we reached max
-        if(temp->numberOfKeys == order)
-            split(temp);
+        // If the leaf to insert in is full
+        if(leafPos->numberOfKeys == order)
+            // split this leaf
+            split(leafPos);
+    }
+
+    // Destructor for the B-tree
+    ~BTree()
+    {
+        // Delete the root pointer
+        delete root;
     }
 };
 
-
-
-int main() {
-
+int main()
+{
     // Construct a BTree of order 3, which stores int data
-    // BTree<int,3> t1;
-    //
-    // t1.Insert(1);
-    // t1.Insert(5);
-    // t1.Insert(0);
-    // t1.Insert(4);
-    // t1.Insert(3);
-    // t1.Insert(2);
-    // t1.Print(); // Should output the following on the screen:
+    BTree<int,3> t1;
 
-    /*
-    1,4
+    t1.Insert(1);
+    t1.Insert(5);
+    t1.Insert(0);
+    t1.Insert(4);
+    t1.Insert(3);
+    t1.Insert(2);
+
+    t1.Print(); // Should output the following on the screen:
+
+
+   /* 1,4
       0
       2,3
-      5
-    */
+      5*/
 
-    // // Construct a BTree of order 5, which stores char data
-    // BTree<char,5> t;
-    //
-    // // Look at the example in our lecture:
-    // t.Insert('G');
-    // t.Insert('I');
-    // t.Insert('B');
-    // t.Insert('J');
-    // t.Insert('C');
-    // t.Insert('A');
-    // t.Insert('K');
-    // t.Insert('E');
-    // t.Insert('D');
-    // t.Insert('S');
-    // t.Insert('T');
-    // t.Insert('R');
-    // t.Insert('L');
-    // t.Insert('F');
-    // t.Insert('H');
-    // t.Insert('M');
-    // t.Insert('N');
-    // t.Insert('P');
-    // t.Insert('Q');
-    //
-    //
-    // t.Print();
-    //
-    // BTree<int,4> f;
-    // f.Insert(5);
-    // f.Insert(3);
-    // f.Insert(21);
-    // f.Insert(9);
-    // f.Insert(1);
-    // f.Insert(13);
-    // f.Insert(2);
-    // f.Insert(7);
-    //
-    // f.Print();
+
+    // Construct a BTree of order 5, which stores char data
+    BTree<char,5> t;
+
+    // Look at the example in our lecture:
+    t.Insert('G');
+    t.Insert('I');
+    t.Insert('B');
+    t.Insert('J');
+    t.Insert('C');
+    t.Insert('A');
+    t.Insert('K');
+    t.Insert('E');
+    t.Insert('D');
+    t.Insert('S');
+    t.Insert('T');
+    t.Insert('R');
+    t.Insert('L');
+    t.Insert('F');
+    t.Insert('H');
+    t.Insert('M');
+    t.Insert('N');
+    t.Insert('P');
+    t.Insert('Q');
+
+    t.Print();
+
+    BTree<int,4> f;
+    f.Insert(5);
+    f.Insert(3);
+    f.Insert(21);
+    f.Insert(9);
+    f.Insert(1);
+    f.Insert(13);
+    f.Insert(2);
+    f.Insert(7);
+    f.Insert(10);
+    f.Insert(12);
+    f.Insert(4);
+    f.Insert(8);
+
+
+    f.Print();
 
     BTree<int,5>tt;
     tt.Insert(1);
@@ -310,6 +373,50 @@ int main() {
     tt.Insert(18);
     tt.Insert(19);
     tt.Insert(20);
+    tt.Insert(21);
+    tt.Insert(22);
+    tt.Insert(23);
+    tt.Insert(24);
+    tt.Insert(25);
+    tt.Insert(26);
+
     tt.Print();
+
+    BTree<int,6>bf;
+    bf.Insert(10);
+    bf.Insert(20);
+    bf.Insert(30);
+    bf.Insert(40);
+    bf.Insert(50);
+    bf.Insert(60);
+    bf.Insert(70);
+    bf.Insert(80);
+    bf.Insert(90);
+    bf.Insert(100);
+    bf.Insert(110);
+    bf.Insert(120);
+    bf.Insert(130);
+    bf.Insert(140);
+    bf.Insert(150);
+    bf.Insert(160);
+    bf.Insert(170);
+    bf.Insert(180);
+    bf.Insert(190);
+    bf.Insert(200);
+    bf.Insert(210);
+    bf.Insert(220);
+    bf.Insert(230);
+    bf.Insert(240);
+    bf.Insert(250);
+    bf.Insert(260);
+    bf.Insert(270);
+    bf.Insert(280);
+    bf.Insert(290);
+
+    bf.Print();
+
+
+
+
     return 0;
 }
