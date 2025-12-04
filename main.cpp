@@ -142,12 +142,12 @@ private:
             return;
 
         // store keys before deleting the node
-        T pastKeys [order];
+        T * pastKeys = new T[order];
         for (int idx = 0; idx < order ; ++idx)
             pastKeys[idx]= node->keys[idx];
 
         // store children before deleting the node
-        Node<T,order> * pastChildren [order+1] ;
+        Node<T,order> ** pastChildren = new Node<T, order> * [order+1];
         for (int i = 0; i < order+1; ++i)
             pastChildren[i]= node->children[i];
 
@@ -159,7 +159,8 @@ private:
         Node<T,order> * right = new Node<T,order>(leaf);
 
         // Distribute the key to the left and right children
-        for (int idx = 0, idx2=0; idx < order; ++idx)
+        int idx2 = 0;
+        for (int idx = 0; idx < order; ++idx)
         {
             // Left part
             if (idx < order / 2)
@@ -345,6 +346,18 @@ int main()
     t.Insert('N');
     t.Insert('P');
     t.Insert('Q');
+
+    /*
+    K
+      C,G
+        A,B
+        D,E,F
+        H,I,J
+      N,R
+        L,M
+        P,Q
+        S,T
+    */
 
     t.Print();
 
