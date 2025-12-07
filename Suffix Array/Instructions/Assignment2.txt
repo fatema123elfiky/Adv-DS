@@ -1,0 +1,82 @@
+Assignment 2 [10 marks]
+Deadline: 12 Dec 2025
+
+* This assignment can be done in teams of 5 students or less.
+* Team members must be from the same lab so the TA can discuss all of them during one lab time.
+* Each team must come up with their own implementation.
+* Each student in the team must understand all details of the implementation.
+* The code must contain no more than 15,000 characters.
+* Your code must NOT include any TAB character. Convert each TAB to 4 spaces before submitting.
+* You are not allowed to copy any piece of code from the internet or from any other resource.
+* You are not allowed to copy any piece of code from other students.
+* You are not allowed to include any files or built-in libraries, except for the described ones.
+* Your coding style must follow exactly the coding style specified in CodingStyle.pdf.
+* Half the mark is dedicated to comments explaining the code, test cases, and following CodingStyle.
+* If you have issue regarding the assignment, contact the TA, not the doctor.
+* Get your submission on a flash drive and discuss your submission with the TA during the first lab after the deadline.
+* The TA will not tell you your mark. He will report his evaluation to me and I will make the final evaluation.
+* You are allowed to submit after the deadline with 10% mark-deduction for each late day.
+
+------------------------------------------
+
+Implement a Suffix Array prefix doubling O(n (log n)^2) construction algorithm as described in our lecture.
+Do not use string class, use char arrays.
+Your code must be general to handle any string.
+Use standard C++, such that the following main() works. You are not allowed to modify the main().
+You are not allowed to include any files or built-in libraries, except for output.
+Do not write the main() again in your submission.
+Half the mark is dedicatd to comments explaining the code before each code line, test cases, and following the CodingStyle.pdf file.
+
+Use the following method to construct the suffix array:
+* Construct an array such that each element contains 3 integers:
+   - ind: index of a suffix.
+   - r1: the current order of the suffix.
+   - r2: the order that will be used in case there is a tie in r1.
+* At each stage, do the following:
+   - Sort the above array using <r1,r2>.
+   - Move sequentially on the array elements to update r1 for each element.
+   - Sort the above array using ind.
+   - Move sequentially on the array elements to update r2 for each element.
+
+------------------------------------------
+
+int main()
+{
+    SuffixArray t("ACGACTACGATAAC$");
+
+    t.ConstructUsingPrefixDoubling();
+
+    t.Print(); // Prints:  14 11 12  0  6  3  9 13  1  7  4  2  8 10  5
+
+    return 0;
+}
+
+// The following is just illustration for your help only, nothing required about it. Check lecture.
+///////////////////////////////////////////////////////////////////////////////////////////////////
+// i      0  1  2  3  4  5  6  7  8  9 10 11 12 13 14
+// t      A  C  G  A  C  T  A  C  G  A  T  A  A  C  $
+// --------------------------------------------------
+// k=0    1  2  3  1  2  4  1  2  3  1  4  1  1  2  0
+// k=1    2  5  7  2  6  8  2  5  7  3  8  1  2  4  0
+// k=2    3  7 10  4  9 13  3  8 11  5 12  1  2  6  0
+// k=4    3  8 11  5 10 14  4  9 12  6 13  1  2  7  0
+// sa=   14 11 12  0  6  3  9 13  1  7  4  2  8 10  5
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
+------------------------------------------
+
+To submit the code:
+* Write your code in exactly one cpp text file such as myfile.cpp.
+* Write your IDs and names as comments at the beginning of the code.
+* Make sure that myfile.cpp contains the actual code, for example open it in Notepad (do not confuse it with cbp file).
+* Encode the file using the assign_encoder tool as the following:
+g++ -O3 -o assign_encoder.exe assign_encoder.cpp
+assign_encoder.exe ./myfile.cpp 2 3 20101111 20102222 20113333
+* The 2 in the above line is the assignment ID. The 3 in the above line is number of students.
+* If you are a pre-master student, use the ID 20000000 and make sure your name exists as a comment at the beginning of the code.
+* Open the resulting assign_2_20101111_20102222_20113333.bin file in a text editor.
+* Make sure that the text-editor did not put any line-breaks (un-check the word-wrap option).
+* Copy all the text included in the file.
+* Submit the text via the following Google link, as well as your IDs. If the number of students is less than 5, put the number 00000000 in place of un-needed IDs.
+https://forms.gle/Xc9bye2sqKMv7Y8w8
+------------------------------------------
