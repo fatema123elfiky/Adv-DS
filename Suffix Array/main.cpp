@@ -167,6 +167,19 @@ public:
 int main() {
   SuffixArray t("ACGACTACGATAAC$");
   t.ConstructUsingPrefixDoubling();
-  t.Print();
+  t.Print(); // 14 11 12  0  6  3  9 13  1  7  4  2  8 10  5
+
+  SuffixArray t2("ababba$");
+  t.ConstructUsingPrefixDoubling();
+  t.Print(); // 6 5 0 2 4 1 3
+
+  SuffixArray t3("aaaa$");
+  t.ConstructUsingPrefixDoubling();
+  t.Print(); // 4 3 2 1 0
+
+  SuffixArray t4("ppppplppp$");
+  t.ConstructUsingPrefixDoubling();
+  t.Print(); // 9 5 8 4 7 3 6 2 1 0
+
     return 0;
 }
