@@ -96,52 +96,67 @@ private:
     }
 
 public:
-
     // Constructor to get the input string
     SuffixArray(const char * input)
     {
-
         // Calculate the length of the input
         n = 0;
         // counting the length of the input and incrementing n
         while (input[n] != '\0')
             n++;
 
+        // check if there is '$' at the end of the string or not
+        if (input[n-1] != '$')
+          n++;
+
         // initialize dynamic arrays
         text = new char[n];
         elements = new Element[n];
 
-        // copy the input
+        // copy the input to text array
         int i = 0;
         while (input[i] != '\0')
         {
             text[i] = input[i];
             i++;
         }
+
+        // put $ at the end of the string if it doesn't exist
+        if (input[i-1] != '$'){
+          text[i] = '$';
+          i++;
+        }
+        // add null terminator
         text[i] = '\0';
     }
 
     // Function to construct suffix array using prefix doubling
     void ConstructUsingPrefixDoubling()
     {
-        // at k = 0
+        // at k = 0 (sort single chars)
         for (int i = 0; i < n; i++){
+            // index of each suffix
             elements[i].ind = i;
+            // the first iteration ranks according to the ASCII of each letter
             elements[i].r1 = text[i];
+            // initialize r2 to 0
             elements[i].r2 = 0;
         }
 
         // sort according to r1, r2
         mergeSort(elements, 0, n-1);
 
+        // sort according to the index using count sort
         int *classes = new int[n];
+        // give the first letter class 0
         classes[elements[0].ind] = 0;
         for (int i = 1; i < n; i++)
         {
+            // if current letter = to the previous one give it the same class
             if (elements[i].r1 == elements[i-1].r1)
             {
                 classes[elements[i].ind] = classes[elements[i-1].ind];
-            } else
+            } else // if not equal increment the class number
             {
                 classes[elements[i].ind] = classes[elements[i-1].ind] + 1;
             }
@@ -154,19 +169,22 @@ public:
         }
 
         int k = 0;
+        // sort until 2^k is greater than or equal n
         while ((1 << k) < n)
         {
-
+            // make transition form k to k+1
             for (int i = 0; i < n; i++)
             {
                 elements[i].ind = i;
+                // order of first part
                 elements[i].r1 = classes[i];
                 // r2 is the order of the substring starting at i + 2^k
-                if (i + (1 << k) < n)
+                if (i + (1 << k) < n) // check if the second ranking is still in range of n
                 {
                     elements[i].r2 = classes[i + (1 << k)];
                 } else
                 {
+                    // if second part is out of range assign a very small order for r2
                     elements[i].r2 = -1;
                 }
             }
@@ -174,17 +192,20 @@ public:
             // sort according to r1, r2
             mergeSort(elements, 0, n-1);
 
+            // give classes for each element starting from 0
             classes[elements[0].ind] = 0;
             for (int i = 1; i < n; i++)
             {
+                // if the first and second part have the same value as the prevous element assign the same class value
                 if (elements[i].r1 == elements[i - 1].r1 && elements[i].r2 == elements[i - 1].r2)
                 {
                     classes[elements[i].ind] = classes[elements[i - 1].ind];
-                } else
+                } else // if not equal increment the class number
                 {
                     classes[elements[i].ind] = classes[elements[i - 1].ind] + 1;
                 }
             }
+            // go to the next iteration
             k++;
         }
         // delete classes array
