@@ -180,5 +180,13 @@ int main() {
   SuffixArray t4("ppppplppp$");
   t4.ConstructUsingPrefixDoubling();
   t4.Print(); // 9 5 8 4 7 3 6 2 1 0
-    return 0;
+
+  SuffixArray t5("bananabana$");
+  t5.ConstructUsingPrefixDoubling();
+  t5.Print(); // 10 9 5 7 3 1 6 0 8 4 2
+
+  SuffixArray t6("abtababtabt$");
+  t6.ConstructUsingPrefixDoubling();
+  t6.Print(); // 11 3 8 0 5 4 9 1 6 10 2 7
+  return 0;
 }
